@@ -1,0 +1,57 @@
+{{define "applications"}}
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-800">All Applications</h1>
+    <a href="/api/export/csv" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        Export CSV
+    </a>
+</div>
+
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    {{if .Applications}}
+        {{range .Applications}}
+        <div class="p-4 border-b hover:bg-gray-50 transition-colors flex items-center gap-4">
+            <div class="relative group">
+                <button onclick="window.open('/screenshot/{{.ID}}', '_blank')" class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+                </button>
+                {{if .ScreenshotPath}}<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50"><img src="/screenshot/{{.ID}}" class="w-96 rounded-lg shadow-xl border"></div>{{end}}
+            </div>
+            <div class="flex-1">
+                <a href="/applications/{{.ID}}" class="font-semibold text-lg text-gray-800 hover:text-primary">{{.CompanyName}}</a>
+                <div class="text-sm text-gray-500"><a href="{{.JobURL}}" target="_blank" class="hover:text-primary">{{.JobURL}}</a></div>
+                <div class="text-xs text-gray-400 mt-1">{{.CreatedAt.Format "Jan 02, 2006 15:04"}}</div>
+            </div>
+            <select class="px-3 py-2 rounded-lg text-sm font-medium cursor-pointer {{if eq .Status "not_submitted"}}bg-red-100 text-red-700{{else if eq .Status "submitted"}}bg-blue-100 text-blue-700{{else if eq .Status "interview"}}bg-yellow-100 text-yellow-700{{else if eq .Status "waiting_for_answer"}}bg-purple-100 text-purple-700{{else}}bg-green-100 text-green-700{{end}}" onchange="updateStatus({{.ID}}, this.value)">
+                <option value="not_submitted" {{if eq .Status "not_submitted"}}selected{{end}}>Not Submitted</option>
+                <option value="submitted" {{if eq .Status "submitted"}}selected{{end}}>Submitted</option>
+                <option value="interview" {{if eq .Status "interview"}}selected{{end}}>Interview</option>
+                <option value="waiting_for_answer" {{if eq .Status "waiting_for_answer"}}selected{{end}}>Waiting</option>
+                <option value="offer" {{if eq .Status "offer"}}selected{{end}}>Offer</option>
+            </select>
+            {{if .Resume}}<span class="text-green-600" title="Has resume">&#128196;</span>{{end}}
+            {{if .Reference}}<span class="text-blue-600" title="Has reference">&#128221;</span>{{end}}
+            <a href="/applications/{{.ID}}/edit" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm">Edit</a>
+            <button onclick="deleteApplication({{.ID}})" class="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-sm">Delete</button>
+        </div>
+        {{end}}
+    {{else}}
+        <div class="p-12 text-center text-gray-500">
+            <p class="text-xl mb-4">No applications found</p>
+            <a href="/record" class="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">Add an application</a>
+        </div>
+    {{end}}
+</div>
+
+{{if .TotalPages}}
+<div class="flex justify-center gap-2 mt-6">
+    {{if .HasPrev}}
+        <a href="?page={{.PrevPage}}" class="px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50">Previous</a>
+    {{end}}
+    <span class="px-4 py-2 bg-white rounded-lg shadow">Page {{.Page}} of {{.TotalPages}}</span>
+    {{if .HasNext}}
+        <a href="?page={{.NextPage}}" class="px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50">Next</a>
+    {{end}}
+</div>
+{{end}}
+{{end}}

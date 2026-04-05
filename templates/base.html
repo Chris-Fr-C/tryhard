@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3498db',
+                        dark: '#2c3e50',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-dark text-white px-6 py-4 shadow-lg">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                <span class="text-xl font-bold">Job Tracker</span>
+            </div>
+            <div class="flex gap-6">
+                <a href="/" class="hover:text-primary transition-colors {{if eq .CurrentPage "dashboard"}}text-primary{{end}}">Dashboard</a>
+                <a href="/applications" class="hover:text-primary transition-colors {{if eq .CurrentPage "applications"}}text-primary{{end}}">Applications</a>
+                <a href="/record" class="hover:text-primary transition-colors {{if eq .CurrentPage "record"}}text-primary{{end}}">Record</a>
+                <a href="/resources" class="hover:text-primary transition-colors {{if eq .CurrentPage "resources"}}text-primary{{end}}">Resources</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 py-8">
+        {{.Content}}
+    </main>
+
+    <script>
+        async function updateStatus(id, status) {
+            try {
+                const response = await fetch(`/api/applications/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+                if (response.ok) location.reload();
+            } catch (error) { console.error('Error:', error); }
+        }
+        async function deleteApplication(id) {
+            if (confirm('Delete this application?')) {
+                try {
+                    const response = await fetch(`/api/applications/${id}`, { method: 'DELETE' });
+                    if (response.ok) location.reload();
+                } catch (error) { console.error('Error:', error); }
+            }
+        }
+        async function deleteResource(id, type) {
+            if (confirm('Delete this ' + type + '?')) {
+                try {
+                    const response = await fetch(`/api/resources/${id}`, { method: 'DELETE' });
+                    if (response.ok) location.reload();
+                } catch (error) { console.error('Error:', error); }
+            }
+        }
+        async function prefillFromURL() {
+            const url = document.getElementById('job_url').value;
+            if (!url) { alert('Please enter a job posting URL first'); return; }
+            try {
+                const response = await fetch(`/api/prefill?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                if (data.company_name && !document.getElementById('company_name').value) {
+                    document.getElementById('company_name').value = data.company_name;
+                }
+                if (data.company_url && !document.getElementById('company_url').value) {
+                    document.getElementById('company_url').value = data.company_url;
+                }
+            } catch (error) { console.error('Error prefill:', error); }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+{{define "view"}}
+<div id="gowitness-status" class="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg hidden">
+    <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        <span id="gowitness-message">Checking gowitness status...</span>
+    </div>
+</div>
+
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <a href="/applications" class="text-primary hover:underline mb-2 inline-block">&larr; Back to Applications</a>
+        <h1 class="text-3xl font-bold text-gray-800">{{.Application.CompanyName}}</h1>
+    </div>
+    <a href="/applications/{{.Application.ID}}/edit" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">Edit</a>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Job Details</h2>
+            <div class="space-y-3">
+                <div>
+                    <span class="text-gray-500 text-sm">Job URL</span>
+                    <p><a href="{{.Application.JobURL}}" target="_blank" class="text-primary hover:underline">{{.Application.JobURL}}</a></p>
+                </div>
+                <div>
+                    <span class="text-gray-500 text-sm">Company Website</span>
+                    <p><a href="{{.Application.CompanyURL}}" target="_blank" class="text-primary hover:underline">{{.Application.CompanyURL}}</a></p>
+                </div>
+                <div>
+                    <span class="text-gray-500 text-sm">Recorded</span>
+                    <p>{{.Application.CreatedAt.Format "January 02, 2006 at 15:04"}}</p>
+                </div>
+            </div>
+        </div>
+
+        {{if .Application.Notes}}
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Notes</h2>
+            <p class="whitespace-pre-wrap text-gray-700">{{.Application.Notes}}</p>
+        </div>
+        {{end}}
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h2 class="text-xl font-semibold">Screenshot</h2>
+                <div class="flex gap-2">
+                    <button onclick="captureScreenshot({{.Application.ID}})" id="capture-btn" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Capture
+                    </button>
+                    {{if .Application.ScreenshotPath}}
+                    <a href="/screenshot/{{.Application.ID}}" target="_blank" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">Open in New Tab</a>
+                    {{end}}
+                </div>
+            </div>
+            {{if .Application.ScreenshotPath}}
+            <img src="/screenshot/{{.Application.ID}}" class="w-full">
+            {{else}}
+            <div class="p-12 text-center text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <p>No screenshot captured yet</p>
+                <p class="text-sm mt-2">Click "Capture" to take a screenshot of the job posting</p>
+            </div>
+            {{end}}
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Status</h2>
+            <select id="status_select" onchange="updateStatus({{.Application.ID}}, this.value)" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent {{if eq .Application.Status "not_submitted"}}bg-red-100{{else if eq .Application.Status "submitted"}}bg-blue-100{{else if eq .Application.Status "interview"}}bg-yellow-100{{else if eq .Application.Status "waiting_for_answer"}}bg-purple-100{{else}}bg-green-100{{end}}">
+                <option value="not_submitted" {{if eq .Application.Status "not_submitted"}}selected{{end}}>Not Submitted</option>
+                <option value="submitted" {{if eq .Application.Status "submitted"}}selected{{end}}>Submitted</option>
+                <option value="interview" {{if eq .Application.Status "interview"}}selected{{end}}>Interview</option>
+                <option value="waiting_for_answer" {{if eq .Application.Status "waiting_for_answer"}}selected{{end}}>Waiting for Answer</option>
+                <option value="offer" {{if eq .Application.Status "offer"}}selected{{end}}>Offer</option>
+            </select>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Resume Used</h2>
+            {{if .Application.Resume}}
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">&#128196;</span>
+                <div>
+                    <p class="font-medium">{{.Application.Resume.Name}}</p>
+                    <a href="/resources/{{.Application.Resume.ID}}" target="_blank" class="text-primary hover:underline text-sm">View</a>
+                </div>
+            </div>
+            {{else}}
+            <p class="text-gray-500">No resume selected</p>
+            {{end}}
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Reference Letter</h2>
+            {{if .Application.Reference}}
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">&#128221;</span>
+                <div>
+                    <p class="font-medium">{{.Application.Reference.Name}}</p>
+                    <a href="/resources/{{.Application.Reference.ID}}" target="_blank" class="text-primary hover:underline text-sm">View</a>
+                </div>
+            </div>
+            {{else}}
+            <p class="text-gray-500">No reference letter</p>
+            {{end}}
+        </div>
+
+        <button onclick="deleteApplication({{.Application.ID}})" class="w-full px-6 py-3 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors">Delete Application</button>
+    </div>
+</div>
+
+<script>
+async function checkGowitnessStatus() {
+    try {
+        const response = await fetch('/api/gowitness/status');
+        const data = await response.json();
+        const statusDiv = document.getElementById('gowitness-status');
+        const messageSpan = document.getElementById('gowitness-message');
+        
+        if (!data.available) {
+            statusDiv.classList.remove('hidden');
+            statusDiv.classList.remove('bg-yellow-100', 'border-yellow-400');
+            statusDiv.classList.add('bg-red-100', 'border-red-400');
+            messageSpan.textContent = data.message;
+        }
+    } catch (error) {
+        console.error('Error checking gowitness status:', error);
+    }
+}
+
+async function captureScreenshot(appId) {
+    const btn = document.getElementById('capture-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Capturing...';
+    
+    try {
+        const response = await fetch(`/api/applications/${appId}/screenshot`, { method: 'POST' });
+        const data = await response.json();
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Failed to capture screenshot: ' + (data.error || 'Unknown error'));
+            btn.disabled = false;
+            btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Capture';
+        }
+    } catch (error) {
+        alert('Failed to capture screenshot: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Capture';
+    }
+}
+
+checkGowitnessStatus();
+</script>
+{{end}}

@@ -11,9 +11,9 @@ import (
 
 type Config struct {
 	DBPath          string
-	BlobsPath       string // That one is for the resume and stuff.
-	ScreenshotsPath string // If you wanna record the website since some companies just delete the add.
-	GowitnessPath   string  // Link to da binary if you wanna screenshot. Usually $HOME/go/bin
+	BlobsPath       string
+	ScreenshotsPath string
+	GowitnessPath   string
 	Host            string
 	Port            string
 }
@@ -34,23 +34,45 @@ func expandPath(path string) string {
 	return path
 }
 
+func createDefaultConfig(configPath string) error {
+	defaultConfig := `[database]
+db_path = ./data/jobtracker.sqlite
+
+[storage]
+blobs_path = ./data/blobs
+screenshots_path = ./data/screenshots
+
+[gowitness]
+path = $HOME/go/bin/gowitness
+
+[app]
+host = 0.0.0.0
+port = 8080
+`
+	return os.WriteFile(configPath, []byte(defaultConfig), 0644)
+}
+
 func LoadConfig(configPath string) (*Config, error) {
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		if err := createDefaultConfig(configPath); err != nil {
+			return nil, err
+		}
+	}
+
 	config.AddDriver(ini.Driver)
 	err := config.LoadFiles(configPath)
 	if err != nil {
 		return nil, err
 	}
 
-	dbPath := config.String("database.db_path", "./data/jobtracker.db")
-	blobsPath := config.String("storage.blobs_path", "./blobs")
-	screenshotsPath := config.String("storage.screenshots_path", "./screenshots")
-	gowitnessPath := config.String("gowitness.path", "/home/christophe/go/bin/gowitness")
+	dbPath := config.String("database.db_path", "./data/jobtracker.sqlite")
+	blobsPath := config.String("storage.blobs_path", "./data/blobs")
+	screenshotsPath := config.String("storage.screenshots_path", "./data/screenshots")
+	gowitnessPath := config.String("gowitness.path", "$HOME/go/bin/gowitness")
 
 	gowitnessPath = expandPath(gowitnessPath)
 	host := config.String("app.host", "0.0.0.0")
 	port := config.String("app.port", "8080")
-
-	gowitnessPath = expandPath(gowitnessPath)
 
 	if !filepath.IsAbs(dbPath) {
 		absPath, err := filepath.Abs(dbPath)

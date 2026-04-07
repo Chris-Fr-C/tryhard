@@ -34,3 +34,4 @@ blobs/
 *.sqlite
 *.db
 tryhard
+/jobtracker

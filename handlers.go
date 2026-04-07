@@ -1,8 +1,11 @@
 package main
+
 // Here comes da big file cuz im too lazy to do it properly.
+// #vibecoded
 import (
 	"bytes"
 	"crypto/sha1"
+	"embed"
 	"encoding/csv"
 	"fmt"
 	"html/template"
@@ -23,26 +26,26 @@ import (
 	"gorm.io/gorm"
 )
 
+//go:embed templates/*
+var templatesFS embed.FS
+
 type Handlers struct {
-	db        *gorm.DB
-	config    *Config
-	templates map[string]*template.Template
+	db     *gorm.DB
+	config *Config
 }
 
 func NewHandlers(db *gorm.DB, config *Config) *Handlers {
-	templates := make(map[string]*template.Template)
-
-	return &Handlers{db: db, config: config, templates: templates}
+	return &Handlers{db: db, config: config}
 }
 
 func (h *Handlers) render(c *gin.Context, page string, data gin.H) {
-	contentTmpl := template.Must(template.ParseFiles(fmt.Sprintf("templates/%s.html", page)))
+	contentTmpl := template.Must(template.ParseFS(templatesFS, fmt.Sprintf("templates/%s.html", page)))
 	var contentBuf bytes.Buffer
 	contentTmpl.ExecuteTemplate(&contentBuf, page, data)
 	data["Content"] = template.HTML(contentBuf.String())
 	data["CurrentPage"] = page
 
-	baseTmpl := template.Must(template.ParseFiles("templates/base.html"))
+	baseTmpl := template.Must(template.ParseFS(templatesFS, "templates/base.html"))
 	baseTmpl.Execute(c.Writer, data)
 }
 
@@ -319,12 +322,42 @@ func (h *Handlers) PrefillURL(c *gin.Context) {
 		return
 	}
 
+	companyName := extractCompanyFromURL(targetURL)
+	companyURL := buildCompanyURL(targetURL)
+
+	var existingApps []Application
+	h.db.Where("company_name LIKE ?", "%"+companyName+"%").Or("company_url LIKE ?", "%"+companyURL+"%").Or("job_url = ?", targetURL).Find(&existingApps)
+
 	result := gin.H{
-		"company_name": extractCompanyFromURL(targetURL),
-		"company_url":  buildCompanyURL(targetURL),
+		"company_name":   companyName,
+		"company_url":    companyURL,
+		"existing_apps":  existingApps,
+		"has_existing":   len(existingApps) > 0,
+		"existing_count": len(existingApps),
 	}
 
 	c.JSON(http.StatusOK, result)
+}
+
+func (h *Handlers) SearchApplications(c *gin.Context) {
+	query := c.Query("q")
+	if query == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Search query required"})
+		return
+	}
+
+	var apps []Application
+	h.db.Preload("Resume").Preload("Reference").
+		Where("company_name LIKE ? OR job_url LIKE ? OR company_url LIKE ? OR notes LIKE ?",
+			"%"+query+"%", "%"+query+"%", "%"+query+"%", "%"+query+"%").
+		Order("created_at DESC").
+		Find(&apps)
+
+	c.JSON(http.StatusOK, gin.H{
+		"results": apps,
+		"count":   len(apps),
+		"query":   query,
+	})
 }
 
 func (h *Handlers) ResourcesPage(c *gin.Context) {
@@ -524,7 +557,7 @@ func captureWithGowitness(targetURL, screenshotsPath, gowitnessPath string) stri
 	}
 
 	log.Printf("Capturing screenshot for: %s", targetURL)
-	cmd := exec.Command(gowitnessPath, "scan" , "single", "--url", targetURL, "-s", tempDir, "--screenshot-fullpage")
+	cmd := exec.Command(gowitnessPath, "scan", "single", "--url", targetURL, "-s", tempDir, "--screenshot-fullpage")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Printf("Gowitness failed: %v\nOutput: %s", err, string(output))

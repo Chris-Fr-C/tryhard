@@ -51,6 +51,7 @@ func main() {
 	r.POST("/api/applications/:id/screenshot", handlers.CaptureScreenshot)
 
 	r.GET("/api/prefill", handlers.PrefillURL)
+	r.GET("/api/search", handlers.SearchApplications)
 	r.GET("/api/export/csv", handlers.ExportCSV)
 	r.GET("/api/gowitness/status", handlers.GowitnessStatus)
 

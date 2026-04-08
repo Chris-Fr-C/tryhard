@@ -10,12 +10,13 @@ import (
 )
 
 type Config struct {
-	DBPath          string
-	BlobsPath       string
-	ScreenshotsPath string
-	GowitnessPath   string
-	Host            string
-	Port            string
+	DBPath           string
+	BlobsPath        string
+	ScreenshotsPath  string
+	GowitnessPath    string
+	GowitnessEnabled bool
+	Host             string
+	Port             string
 }
 
 func expandPath(path string) string {
@@ -69,6 +70,7 @@ func LoadConfig(configPath string) (*Config, error) {
 	blobsPath := config.String("storage.blobs_path", "./data/blobs")
 	screenshotsPath := config.String("storage.screenshots_path", "./data/screenshots")
 	gowitnessPath := config.String("gowitness.path", "$HOME/go/bin/gowitness")
+	gowitnessEnabled := config.Bool("gowitness.enabled", false)
 
 	gowitnessPath = expandPath(gowitnessPath)
 	host := config.String("app.host", "0.0.0.0")
@@ -106,11 +108,12 @@ func LoadConfig(configPath string) (*Config, error) {
 	}
 
 	return &Config{
-		DBPath:          dbPath,
-		BlobsPath:       blobsPath,
-		ScreenshotsPath: screenshotsPath,
-		GowitnessPath:   gowitnessPath,
-		Host:            host,
-		Port:            port,
+		DBPath:           dbPath,
+		BlobsPath:        blobsPath,
+		ScreenshotsPath:  screenshotsPath,
+		GowitnessPath:    gowitnessPath,
+		GowitnessEnabled: gowitnessEnabled,
+		Host:             host,
+		Port:             port,
 	}, nil
 }

@@ -164,7 +164,7 @@ func (h *Handlers) CreateApplication(c *gin.Context) {
 	}
 
 	screenshotPath := ""
-	if req.JobURL != "" {
+	if req.JobURL != "" && h.config.GowitnessEnabled {
 		screenshotPath = captureWithGowitness(req.JobURL, h.config.ScreenshotsPath, h.config.GowitnessPath)
 	}
 
@@ -250,8 +250,10 @@ func (h *Handlers) UpdateApplication(c *gin.Context) {
 		if app.ScreenshotPath != "" {
 			os.Remove(app.ScreenshotPath)
 		}
-		screenshotPath := captureWithGowitness(req.JobURL, h.config.ScreenshotsPath, h.config.GowitnessPath)
-		app.ScreenshotPath = screenshotPath
+		if h.config.GowitnessEnabled {
+			screenshotPath := captureWithGowitness(req.JobURL, h.config.ScreenshotsPath, h.config.GowitnessPath)
+			app.ScreenshotPath = screenshotPath
+		}
 	}
 
 	app.JobURL = req.JobURL
@@ -452,6 +454,11 @@ func (h *Handlers) ViewScreenshot(c *gin.Context) {
 }
 
 func (h *Handlers) CaptureScreenshot(c *gin.Context) {
+	if !h.config.GowitnessEnabled {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Gowitness is not enabled. Set enabled = true in config.ini to enable."})
+		return
+	}
+
 	id := c.Param("id")
 	var app Application
 	if err := h.db.First(&app, id).Error; err != nil {
@@ -492,6 +499,7 @@ func (h *Handlers) GowitnessStatus(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"available": available,
+		"enabled":   h.config.GowitnessEnabled,
 		"message":   message,
 		"path":      h.config.GowitnessPath,
 	})

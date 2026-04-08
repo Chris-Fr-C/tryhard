@@ -50,6 +50,10 @@
         {{.Content}}
     </main>
 
+    <div id="toast-notification" class="fixed top-4 right-4 bg-yellow-500 text-white px-6 py-4 rounded-lg shadow-lg hidden z-50">
+        <div id="toast-message"></div>
+    </div>
+
     <div id="search-results-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
             <div class="p-4 border-b flex justify-between items-center">
@@ -59,19 +63,6 @@
                 </button>
             </div>
             <div id="search-results" class="p-4 overflow-y-auto max-h-[60vh]">
-            </div>
-        </div>
-    </div>
-
-    <div id="existing-apps-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full">
-            <div class="p-4 border-b flex justify-between items-center">
-                <h2 class="text-xl font-semibold">Existing Applications Found</h2>
-                <button onclick="closeExistingModal()" class="text-gray-500 hover:text-gray-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <div id="existing-apps-list" class="p-4">
             </div>
         </div>
     </div>
@@ -112,26 +103,10 @@
                     document.getElementById('company_url').value = data.company_url;
                 }
                 if (data.has_existing) {
+                    showToast(`Warning: ${data.existing_count} existing application(s) found for this company/URL!`);
                     showExistingApps(data.existing_apps);
                 }
             } catch (error) { console.error('Error prefill:', error); }
-        }
-        function showExistingApps(apps) {
-            const list = document.getElementById('existing-apps-list');
-            if (apps.length === 0) return;
-            list.innerHTML = apps.map(app => `
-                <div class="p-3 border rounded-lg mb-2 hover:bg-gray-50">
-                    <a href="/applications/${app.id}" class="block">
-                        <div class="font-medium text-primary">${app.company_name}</div>
-                        <div class="text-sm text-gray-500">${app.job_url || 'No URL'}</div>
-                        <div class="text-xs text-gray-400 mt-1">Status: ${app.status}</div>
-                    </a>
-                </div>
-            `).join('');
-            document.getElementById('existing-apps-modal').classList.remove('hidden');
-        }
-        function closeExistingModal() {
-            document.getElementById('existing-apps-modal').classList.add('hidden');
         }
         async function searchApplications() {
             const query = document.getElementById('search-input').value;
@@ -165,6 +140,14 @@
         }
         function closeSearchModal() {
             document.getElementById('search-results-modal').classList.add('hidden');
+        }
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 5000);
         }
     </script>
 </body>

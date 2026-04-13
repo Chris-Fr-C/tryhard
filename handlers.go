@@ -60,7 +60,7 @@ type DashboardData struct {
 }
 
 func (h *Handlers) Dashboard(c *gin.Context) {
-	var total, notSent, submitted, interview, waiting, offer int64
+	var total, notSent, submitted, interview, waiting, offer, rejected int64
 
 	h.db.Model(&Application{}).Count(&total)
 	h.db.Model(&Application{}).Where("status = ?", StatusNotSubmitted).Count(&notSent)
@@ -68,6 +68,7 @@ func (h *Handlers) Dashboard(c *gin.Context) {
 	h.db.Model(&Application{}).Where("status = ?", StatusInterview).Count(&interview)
 	h.db.Model(&Application{}).Where("status = ?", StatusWaitingAnswer).Count(&waiting)
 	h.db.Model(&Application{}).Where("status = ?", StatusOffer).Count(&offer)
+	h.db.Model(&Application{}).Where("status = ?", StatusRejected).Count(&rejected)
 
 	var apps []Application
 	h.db.Preload("Resume").Preload("Reference").Order("created_at DESC").Limit(20).Find(&apps)
@@ -79,6 +80,7 @@ func (h *Handlers) Dashboard(c *gin.Context) {
 		"Interview":    interview,
 		"Waiting":      waiting,
 		"Offer":        offer,
+		"Rejected":     rejected,
 		"Applications": apps,
 	}
 

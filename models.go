@@ -12,6 +12,7 @@ const (
 	StatusInterview     ApplicationStatus = "interview"
 	StatusWaitingAnswer ApplicationStatus = "waiting_for_answer"
 	StatusOffer         ApplicationStatus = "offer"
+	StatusRejected      ApplicationStatus = "rejected"
 )
 
 type Application struct {

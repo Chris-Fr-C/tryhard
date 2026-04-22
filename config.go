@@ -15,6 +15,7 @@ type Config struct {
 	ScreenshotsPath  string
 	GowitnessPath    string
 	GowitnessEnabled bool
+	RejectedDays     int
 	Host             string
 	Port             string
 }
@@ -45,6 +46,10 @@ screenshots_path = ./data/screenshots
 
 [gowitness]
 path = $HOME/go/bin/gowitness
+enabled = false
+
+[automation]
+rejected_days = 21
 
 [app]
 host = 0.0.0.0
@@ -71,6 +76,7 @@ func LoadConfig(configPath string) (*Config, error) {
 	screenshotsPath := config.String("storage.screenshots_path", "./data/screenshots")
 	gowitnessPath := config.String("gowitness.path", "$HOME/go/bin/gowitness")
 	gowitnessEnabled := config.Bool("gowitness.enabled", false)
+	rejectedDays := config.Int("automation.rejected_days", 21)
 
 	gowitnessPath = expandPath(gowitnessPath)
 	host := config.String("app.host", "0.0.0.0")
@@ -113,6 +119,7 @@ func LoadConfig(configPath string) (*Config, error) {
 		ScreenshotsPath:  screenshotsPath,
 		GowitnessPath:    gowitnessPath,
 		GowitnessEnabled: gowitnessEnabled,
+		RejectedDays:     rejectedDays,
 		Host:             host,
 		Port:             port,
 	}, nil

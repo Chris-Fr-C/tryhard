@@ -81,6 +81,7 @@ func (h *Handlers) Dashboard(c *gin.Context) {
 		"Waiting":      waiting,
 		"Offer":        offer,
 		"Rejected":     rejected,
+		"RejectedDays": h.config.RejectedDays,
 		"Applications": apps,
 	}
 
@@ -504,6 +505,25 @@ func (h *Handlers) GowitnessStatus(c *gin.Context) {
 		"enabled":   h.config.GowitnessEnabled,
 		"message":   message,
 		"path":      h.config.GowitnessPath,
+	})
+}
+
+func (h *Handlers) UpdateOldApplications(c *gin.Context) {
+	days := h.config.RejectedDays
+	var oldApps []Application
+
+	h.db.Where("status = ? AND updated_at < ?", StatusWaitingAnswer, time.Now().AddDate(0, 0, -days)).Find(&oldApps)
+
+	count := 0
+	for i := range oldApps {
+		oldApps[i].Status = StatusNoResponse
+		h.db.Save(&oldApps[i])
+		count++
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"updated": count,
+		"days":    days,
 	})
 }
 

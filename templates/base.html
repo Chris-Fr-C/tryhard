@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>window.rejectedDays = {{.RejectedDays}};</script>
     <script>
         tailwind.config = {
             theme: {
@@ -140,6 +141,15 @@
         }
         function closeSearchModal() {
             document.getElementById('search-results-modal').classList.add('hidden');
+        }
+        async function updateOldApplications() {
+            if (!confirm('Move applications that have been waiting for more than ' + window.rejectedDays + ' days to "No Response"? This cannot be undone.')) return;
+            try {
+                const response = await fetch('/api/applications/update-old', { method: 'POST' });
+                const data = await response.json();
+                showToast(`Updated ${data.updated} application(s) to "No Response" status`);
+                if (data.updated > 0) location.reload();
+            } catch (error) { console.error('Error:', error); }
         }
         function showToast(message) {
             const toast = document.getElementById('toast-notification');

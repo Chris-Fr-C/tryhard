@@ -69,13 +69,14 @@
     <div class="space-y-6">
         <div class="bg-white rounded-xl shadow-md p-6">
             <h2 class="text-xl font-semibold mb-4">Status</h2>
-            <select id="status_select" onchange="updateStatus({{.Application.ID}}, this.value)" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent {{if eq .Application.Status "not_submitted"}}bg-red-100{{else if eq .Application.Status "submitted"}}bg-blue-100{{else if eq .Application.Status "interview"}}bg-yellow-100{{else if eq .Application.Status "waiting_for_answer"}}bg-purple-100{{else if eq .Application.Status "offer"}}bg-green-100{{else if eq .Application.Status "rejected"}}bg-gray-300{{else}}bg-gray-100{{end}}">
+            <select id="status_select" onchange="updateStatus({{.Application.ID}}, this.value)" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent {{if eq .Application.Status "not_submitted"}}bg-red-100{{else if eq .Application.Status "submitted"}}bg-blue-100{{else if eq .Application.Status "interview"}}bg-yellow-100{{else if eq .Application.Status "waiting_for_answer"}}bg-purple-100{{else if eq .Application.Status "offer"}}bg-green-100{{else if eq .Application.Status "rejected"}}bg-gray-300{{else if eq .Application.Status "rejected_no_response"}}bg-gray-400{{else}}bg-gray-100{{end}}">
                 <option value="not_submitted" {{if eq .Application.Status "not_submitted"}}selected{{end}}>Not Submitted</option>
                 <option value="submitted" {{if eq .Application.Status "submitted"}}selected{{end}}>Submitted</option>
                 <option value="interview" {{if eq .Application.Status "interview"}}selected{{end}}>Interview</option>
                 <option value="waiting_for_answer" {{if eq .Application.Status "waiting_for_answer"}}selected{{end}}>Waiting for Answer</option>
                 <option value="offer" {{if eq .Application.Status "offer"}}selected{{end}}>Offer</option>
                 <option value="rejected" {{if eq .Application.Status "rejected"}}selected{{end}}>Rejected</option>
+                <option value="rejected_no_response" {{if eq .Application.Status "rejected_no_response"}}selected{{end}}>No Response</option>
             </select>
         </div>
 

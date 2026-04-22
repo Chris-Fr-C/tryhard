@@ -54,6 +54,7 @@ func main() {
 	r.GET("/api/search", handlers.SearchApplications)
 	r.GET("/api/export/csv", handlers.ExportCSV)
 	r.GET("/api/gowitness/status", handlers.GowitnessStatus)
+	r.POST("/api/applications/update-old", handlers.UpdateOldApplications)
 
 	addr := fmt.Sprintf("%s:%s", config.Host, config.Port)
 	log.Printf("Starting server on %s", addr)

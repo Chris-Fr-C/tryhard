@@ -210,6 +210,11 @@ func (h *Handlers) CreateApplication(c *gin.Context) {
 	}
 
 	h.db.Create(&app)
+
+	continueRecording := c.Query("continue")
+	if continueRecording == "true" {
+		c.Redirect(http.StatusFound, "/record")
+	}
 	c.Redirect(http.StatusFound, "/")
 }
 
@@ -613,15 +618,19 @@ func extractCompanyFromURL(rawURL string) string {
 		return ""
 	}
 	host := u.Host
-	if idx := strings.Index(host, "."); idx != -1 {
-		return strings.Title(host[:idx])
+	parts := strings.Split(host, ".")
+	if len(parts) >= 3 {
+		return strings.Title(parts[len(parts)-2])
 	}
-	return strings.Title(host)
+	return strings.Title(parts[0])
 }
 
 func buildCompanyURL(rawURL string) string {
 	u, err := url.Parse(rawURL)
 	if err != nil {
+		return ""
+	}
+	if strings.Contains(u.Host, "linkedin.com") {
 		return ""
 	}
 	return fmt.Sprintf("%s://%s/", u.Scheme, u.Host)

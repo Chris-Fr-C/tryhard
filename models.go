@@ -17,19 +17,20 @@ const (
 )
 
 type Application struct {
-	ID             uint              `gorm:"primaryKey" json:"id"`
-	CreatedAt      time.Time         `json:"created_at"`
-	UpdatedAt      time.Time         `json:"updated_at"`
-	JobURL         string            `gorm:"size:2048" json:"job_url"`
-	ScreenshotPath string            `gorm:"size:1024" json:"screenshot_path"`
-	CompanyName    string            `gorm:"size:512" json:"company_name"`
-	CompanyURL     string            `gorm:"size:2048" json:"company_url"`
-	Status         ApplicationStatus `gorm:"size:64;default:'not_submitted'" json:"status"`
-	Notes          string            `gorm:"type:text" json:"notes"`
-	ResumeID       *uint             `json:"resume_id"`
-	Resume         *Resource         `gorm:"foreignKey:ResumeID" json:"resume,omitempty"`
-	ReferenceID    *uint             `json:"reference_id"`
-	Reference      *Resource         `gorm:"foreignKey:ReferenceID" json:"reference,omitempty"`
+	ID              uint              `gorm:"primaryKey" json:"id"`
+	CreatedAt       time.Time         `json:"created_at"`
+	UpdatedAt       time.Time         `json:"updated_at"`
+	StatusUpdatedAt time.Time         `json:"status_updated_at"`
+	JobURL          string            `gorm:"size:2048" json:"job_url"`
+	ScreenshotPath  string            `gorm:"size:1024" json:"screenshot_path"`
+	CompanyName     string            `gorm:"size:512" json:"company_name"`
+	CompanyURL      string            `gorm:"size:2048" json:"company_url"`
+	Status          ApplicationStatus `gorm:"size:64;default:'submitted'" json:"status"`
+	Notes           string            `gorm:"type:text" json:"notes"`
+	ResumeID        *uint             `json:"resume_id"`
+	Resume          *Resource         `gorm:"foreignKey:ResumeID" json:"resume,omitempty"`
+	ReferenceID     *uint             `json:"reference_id"`
+	Reference       *Resource         `gorm:"foreignKey:ReferenceID" json:"reference,omitempty"`
 }
 
 type Resource struct {

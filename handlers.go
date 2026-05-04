@@ -59,8 +59,9 @@ type DashboardData struct {
 	Applications []Application
 }
 
+// Dashboard displays the main dashboard with application statistics
 func (h *Handlers) Dashboard(c *gin.Context) {
-	var total, notSent, submitted, interview, waiting, offer, rejected int64
+	var total, notSent, submitted, interview, waiting, offer, rejected, noAnswer int64
 
 	h.db.Model(&Application{}).Count(&total)
 	h.db.Model(&Application{}).Where("status = ?", StatusNotSubmitted).Count(&notSent)
@@ -69,6 +70,7 @@ func (h *Handlers) Dashboard(c *gin.Context) {
 	h.db.Model(&Application{}).Where("status = ?", StatusWaitingAnswer).Count(&waiting)
 	h.db.Model(&Application{}).Where("status = ?", StatusOffer).Count(&offer)
 	h.db.Model(&Application{}).Where("status = ?", StatusRejected).Count(&rejected)
+	h.db.Model(&Application{}).Where("status = ?", StatusNoResponse).Count(&noAnswer) // #vibecoded
 
 	var apps []Application
 	h.db.Preload("Resume").Preload("Reference").Order("created_at DESC").Limit(20).Find(&apps)
@@ -81,6 +83,7 @@ func (h *Handlers) Dashboard(c *gin.Context) {
 		"Waiting":      waiting,
 		"Offer":        offer,
 		"Rejected":     rejected,
+		"NoAnswer":     noAnswer,
 		"RejectedDays": h.config.RejectedDays,
 		"Applications": apps,
 	}
@@ -176,16 +179,18 @@ func (h *Handlers) CreateApplication(c *gin.Context) {
 	}
 
 	app := Application{
-		JobURL:         req.JobURL,
-		ScreenshotPath: screenshotPath,
-		CompanyName:    req.CompanyName,
-		CompanyURL:     req.CompanyURL,
-		Status:         StatusNotSubmitted,
-		Notes:          req.Notes,
+		JobURL:          req.JobURL,
+		ScreenshotPath:  screenshotPath,
+		CompanyName:     req.CompanyName,
+		CompanyURL:      req.CompanyURL,
+		Status:          StatusNotSubmitted,
+		StatusUpdatedAt: time.Now(), // #vibecoded
+		Notes:           req.Notes,
 	}
 
 	if req.Status != "" {
 		app.Status = ApplicationStatus(req.Status)
+		app.StatusUpdatedAt = time.Now() // #vibecoded
 	}
 
 	if req.ResumeID != "" {
@@ -214,6 +219,7 @@ func (h *Handlers) CreateApplication(c *gin.Context) {
 	continueRecording := c.Query("continue")
 	if continueRecording == "true" {
 		c.Redirect(http.StatusFound, "/record")
+		return
 	}
 	c.Redirect(http.StatusFound, "/")
 }
@@ -271,6 +277,7 @@ func (h *Handlers) UpdateApplication(c *gin.Context) {
 
 	if req.Status != "" {
 		app.Status = ApplicationStatus(req.Status)
+		app.StatusUpdatedAt = time.Now() // #vibecoded
 	}
 
 	if req.ResumeID != "" {
@@ -513,16 +520,32 @@ func (h *Handlers) GowitnessStatus(c *gin.Context) {
 	})
 }
 
+// UpdateOldApplications moves applications that have been waiting for answer for more than RejectedDays to "No Response" status
 func (h *Handlers) UpdateOldApplications(c *gin.Context) {
 	days := h.config.RejectedDays
+	// #vibecoded
+	if days <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "RejectedDays must be greater than 0"})
+		return
+	}
 	var oldApps []Application
 
-	h.db.Where("status = ? AND updated_at < ?", StatusWaitingAnswer, time.Now().AddDate(0, 0, -days)).Find(&oldApps)
+	cutoffTime := time.Now().AddDate(0, 0, -days)
+	// Update all applications older than cutoffTime regardless of status
+	result := h.db.Where("created_at < ?", cutoffTime).Find(&oldApps)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
 
 	count := 0
 	for i := range oldApps {
 		oldApps[i].Status = StatusNoResponse
-		h.db.Save(&oldApps[i])
+		saveResult := h.db.Save(&oldApps[i])
+		if saveResult.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": saveResult.Error.Error()})
+			return
+		}
 		count++
 	}
 

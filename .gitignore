@@ -35,3 +35,5 @@ blobs/
 *.db
 tryhard
 /jobtracker
+
+local_*.sh

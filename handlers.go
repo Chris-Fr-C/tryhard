@@ -531,8 +531,7 @@ func (h *Handlers) UpdateOldApplications(c *gin.Context) {
 	var oldApps []Application
 
 	cutoffTime := time.Now().AddDate(0, 0, -days)
-	// Update all applications older than cutoffTime regardless of status
-	result := h.db.Where("created_at < ?", cutoffTime).Find(&oldApps)
+	result := h.db.Where("created_at < ? AND status IN ?", cutoffTime, []ApplicationStatus{StatusSubmitted, StatusWaitingAnswer}).Find(&oldApps)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return

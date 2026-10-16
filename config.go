@@ -18,6 +18,19 @@ type Config struct {
 	RejectedDays     int
 	Host             string
 	Port             string
+	Prefix           string
+}
+
+// normalizePrefix trims whitespace, ensures a leading "/" and removes any trailing "/" so the prefix can be safely prepended to routes. // #vibecoded
+func normalizePrefix(prefix string) string {
+	prefix = strings.TrimSpace(prefix)
+	if prefix == "" {
+		return ""
+	}
+	if !strings.HasPrefix(prefix, "/") {
+		prefix = "/" + prefix
+	}
+	return strings.TrimSuffix(prefix, "/")
 }
 
 func expandPath(path string) string {
@@ -54,6 +67,7 @@ rejected_days = 21
 [app]
 host = 0.0.0.0
 port = 8080
+prefix = /jobsearch
 `
 	return os.WriteFile(configPath, []byte(defaultConfig), 0644)
 }
@@ -81,6 +95,7 @@ func LoadConfig(configPath string) (*Config, error) {
 	gowitnessPath = expandPath(gowitnessPath)
 	host := config.String("app.host", "0.0.0.0")
 	port := config.String("app.port", "8080")
+	prefix := normalizePrefix(config.String("app.prefix", "")) // #vibecoded
 
 	if !filepath.IsAbs(dbPath) {
 		absPath, err := filepath.Abs(dbPath)
@@ -122,5 +137,6 @@ func LoadConfig(configPath string) (*Config, error) {
 		RejectedDays:     rejectedDays,
 		Host:             host,
 		Port:             port,
+		Prefix:           prefix,
 	}, nil
 }

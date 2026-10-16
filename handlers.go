@@ -38,12 +38,19 @@ func NewHandlers(db *gorm.DB, config *Config) *Handlers {
 	return &Handlers{db: db, config: config}
 }
 
+// render executes the given page template and wraps it in base.html, injecting the config prefix for sub-path hosting. // #vibecoded
 func (h *Handlers) render(c *gin.Context, page string, data gin.H) {
+	data["Prefix"] = h.config.Prefix // #vibecoded — must be set before content executes so {{.Prefix}} resolves
+	data["CurrentPage"] = page
+
 	contentTmpl := template.Must(template.ParseFS(templatesFS, fmt.Sprintf("templates/%s.html", page)))
 	var contentBuf bytes.Buffer
-	contentTmpl.ExecuteTemplate(&contentBuf, page, data)
+	if err := contentTmpl.ExecuteTemplate(&contentBuf, page, data); err != nil {
+		log.Printf("Template render error on page %s: %v", page, err)
+		c.String(http.StatusInternalServerError, "Template error")
+		return
+	}
 	data["Content"] = template.HTML(contentBuf.String())
-	data["CurrentPage"] = page
 
 	baseTmpl := template.Must(template.ParseFS(templatesFS, "templates/base.html"))
 	baseTmpl.Execute(c.Writer, data)
@@ -218,10 +225,10 @@ func (h *Handlers) CreateApplication(c *gin.Context) {
 
 	continueRecording := c.Query("continue")
 	if continueRecording == "true" {
-		c.Redirect(http.StatusFound, "/record")
+		c.Redirect(http.StatusFound, h.config.Prefix+"/record")
 		return
 	}
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, h.config.Prefix+"/")
 }
 
 func (h *Handlers) EditApplication(c *gin.Context) {
@@ -299,7 +306,7 @@ func (h *Handlers) UpdateApplication(c *gin.Context) {
 	}
 
 	h.db.Save(&app)
-	c.Redirect(http.StatusFound, fmt.Sprintf("/applications/%s", id))
+	c.Redirect(http.StatusFound, fmt.Sprintf("%s/applications/%s", h.config.Prefix, id))
 }
 
 func (h *Handlers) UpdateStatus(c *gin.Context) {
@@ -424,7 +431,7 @@ func (h *Handlers) UploadResource(c *gin.Context) {
 	}
 
 	h.db.Create(&resource)
-	c.Redirect(http.StatusFound, "/resources")
+	c.Redirect(http.StatusFound, h.config.Prefix+"/resources")
 }
 
 func (h *Handlers) ViewResource(c *gin.Context) {

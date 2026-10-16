@@ -8,10 +8,10 @@
 
 <div class="mb-6 flex items-center justify-between">
     <div>
-        <a href="/applications" class="text-primary hover:underline mb-2 inline-block">&larr; Back to Applications</a>
+        <a href="{{$.Prefix}}/applications" class="text-primary hover:underline mb-2 inline-block">&larr; Back to Applications</a>
         <h1 class="text-3xl font-bold text-gray-800">{{.Application.CompanyName}}</h1>
     </div>
-    <a href="/applications/{{.Application.ID}}/edit" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">Edit</a>
+    <a href="{{$.Prefix}}/applications/{{.Application.ID}}/edit" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">Edit</a>
 </div>
 
 <div class="grid lg:grid-cols-3 gap-6">
@@ -50,12 +50,12 @@
                         Capture
                     </button>
                     {{if .Application.ScreenshotPath}}
-                    <a href="/screenshot/{{.Application.ID}}" target="_blank" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">Open in New Tab</a>
+                    <a href="{{$.Prefix}}/screenshot/{{.Application.ID}}" target="_blank" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">Open in New Tab</a>
                     {{end}}
                 </div>
             </div>
             {{if .Application.ScreenshotPath}}
-            <img src="/screenshot/{{.Application.ID}}" class="w-full">
+            <img src="{{$.Prefix}}/screenshot/{{.Application.ID}}" class="w-full">
             {{else}}
             <div class="p-12 text-center text-gray-500">
                 <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -87,7 +87,7 @@
                 <span class="text-2xl">&#128196;</span>
                 <div>
                     <p class="font-medium">{{.Application.Resume.Name}}</p>
-                    <a href="/resources/{{.Application.Resume.ID}}" target="_blank" class="text-primary hover:underline text-sm">View</a>
+                    <a href="{{$.Prefix}}/resources/{{.Application.Resume.ID}}" target="_blank" class="text-primary hover:underline text-sm">View</a>
                 </div>
             </div>
             {{else}}
@@ -102,7 +102,7 @@
                 <span class="text-2xl">&#128221;</span>
                 <div>
                     <p class="font-medium">{{.Application.Reference.Name}}</p>
-                    <a href="/resources/{{.Application.Reference.ID}}" target="_blank" class="text-primary hover:underline text-sm">View</a>
+                    <a href="{{$.Prefix}}/resources/{{.Application.Reference.ID}}" target="_blank" class="text-primary hover:underline text-sm">View</a>
                 </div>
             </div>
             {{else}}
@@ -117,7 +117,7 @@
 <script>
 async function checkGowitnessStatus() {
     try {
-        const response = await fetch('/api/gowitness/status');
+        const response = await fetch('{{$.Prefix}}/api/gowitness/status');
         const data = await response.json();
         const statusDiv = document.getElementById('gowitness-status');
         const messageSpan = document.getElementById('gowitness-message');
@@ -139,7 +139,7 @@ async function captureScreenshot(appId) {
     btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Capturing...';
     
     try {
-        const response = await fetch(`/api/applications/${appId}/screenshot`, { method: 'POST' });
+        const response = await fetch(`{{$.Prefix}}/api/applications/${appId}/screenshot`, { method: 'POST' });
         const data = await response.json();
         
         if (response.ok) {

@@ -1,7 +1,7 @@
 {{define "applications"}}
 <div class="flex justify-between items-center mb-8">
     <h1 class="text-3xl font-bold text-gray-800">All Applications</h1>
-    <a href="/api/export/csv" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2">
+    <a href="{{$.Prefix}}/api/export/csv" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
         Export CSV
     </a>
@@ -11,11 +11,11 @@
     {{if .Applications}}
         {{range .Applications}}
         <div class="p-2 border-b hover:bg-gray-50 transition-colors flex items-center gap-2 text-sm">
-            <button onclick="window.open('/screenshot/{{.ID}}', '_blank')" class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors text-xs">
+            <button onclick="window.open('{{$.Prefix}}/screenshot/{{.ID}}', '_blank')" class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors text-xs">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
             </button>
             <div class="flex-1 min-w-0">
-                <a href="/applications/{{.ID}}" class="font-medium text-gray-800 hover:text-primary truncate">{{.CompanyName}}</a>
+                <a href="{{$.Prefix}}/applications/{{.ID}}" class="font-medium text-gray-800 hover:text-primary truncate">{{.CompanyName}}</a>
                 <a href="{{.JobURL}}" target="_blank" class="text-gray-400 hover:text-primary text-xs truncate block" title="{{.JobURL}}">{{.JobURL}}</a>
             </div>
             <select class="px-2 py-1 rounded text-xs font-medium cursor-pointer {{if eq .Status "not_submitted"}}bg-red-100 text-red-700{{else if eq .Status "submitted"}}bg-blue-100 text-blue-700{{else if eq .Status "interview"}}bg-yellow-100 text-yellow-700{{else if eq .Status "waiting_for_answer"}}bg-purple-100 text-purple-700{{else if eq .Status "offer"}}bg-green-100 text-green-700{{else if eq .Status "rejected"}}bg-gray-300 text-gray-700{{else if eq .Status "rejected_no_response"}}bg-gray-400 text-gray-800{{else}}bg-gray-100 text-gray-700{{end}}" onchange="updateStatus({{.ID}}, this.value)">
@@ -29,14 +29,14 @@
             </select>
             {{if .Resume}}<span class="text-green-600 text-xs">&#128196;</span>{{end}}
             {{if .Reference}}<span class="text-blue-600 text-xs">&#128221;</span>{{end}}
-            <a href="/applications/{{.ID}}/edit" class="text-gray-500 hover:text-gray-700 text-xs">Edit</a>
+            <a href="{{$.Prefix}}/applications/{{.ID}}/edit" class="text-gray-500 hover:text-gray-700 text-xs">Edit</a>
             <button onclick="deleteApplication({{.ID}})" class="text-red-500 hover:text-red-700 text-xs">Del</button>
         </div>
         {{end}}
     {{else}}
         <div class="p-12 text-center text-gray-500">
             <p class="text-xl mb-4">No applications found</p>
-            <a href="/record" class="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">Add an application</a>
+            <a href="{{$.Prefix}}/record" class="inline-block px-6 py-3 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">Add an application</a>
         </div>
     {{end}}
 </div>

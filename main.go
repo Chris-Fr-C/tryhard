@@ -29,32 +29,37 @@ func main() {
 
 	r := gin.Default()
 
-	r.Static("/static", "./static")
+	// #vibecoded
+	// Group all routes under config.Prefix (e.g. "/jobsearch") so the app can be
+	// hosted behind a reverse proxy on a sub-path. Empty prefix keeps old behavior.
+	group := r.Group(config.Prefix)
 
-	r.GET("/", handlers.Dashboard)
-	r.GET("/applications", handlers.ApplicationsPage)
-	r.GET("/applications/:id", handlers.ViewApplication)
-	r.GET("/applications/:id/edit", handlers.EditApplication)
-	r.POST("/applications", handlers.CreateApplication)
-	r.POST("/applications/:id", handlers.UpdateApplication)
-	r.PUT("/api/applications/:id/status", handlers.UpdateStatus)
-	r.DELETE("/api/applications/:id", handlers.DeleteApplication)
+	group.Static("/static", "./static")
 
-	r.GET("/record", handlers.RecordPage)
+	group.GET("/", handlers.Dashboard)
+	group.GET("/applications", handlers.ApplicationsPage)
+	group.GET("/applications/:id", handlers.ViewApplication)
+	group.GET("/applications/:id/edit", handlers.EditApplication)
+	group.POST("/applications", handlers.CreateApplication)
+	group.POST("/applications/:id", handlers.UpdateApplication)
+	group.PUT("/api/applications/:id/status", handlers.UpdateStatus)
+	group.DELETE("/api/applications/:id", handlers.DeleteApplication)
 
-	r.GET("/resources", handlers.ResourcesPage)
-	r.POST("/resources", handlers.UploadResource)
-	r.GET("/resources/:id", handlers.ViewResource)
-	r.DELETE("/api/resources/:id", handlers.DeleteResource)
+	group.GET("/record", handlers.RecordPage)
 
-	r.GET("/screenshot/:id", handlers.ViewScreenshot)
-	r.POST("/api/applications/:id/screenshot", handlers.CaptureScreenshot)
+	group.GET("/resources", handlers.ResourcesPage)
+	group.POST("/resources", handlers.UploadResource)
+	group.GET("/resources/:id", handlers.ViewResource)
+	group.DELETE("/api/resources/:id", handlers.DeleteResource)
 
-	r.GET("/api/prefill", handlers.PrefillURL)
-	r.GET("/api/search", handlers.SearchApplications)
-	r.GET("/api/export/csv", handlers.ExportCSV)
-	r.GET("/api/gowitness/status", handlers.GowitnessStatus)
-	r.POST("/api/applications/update-old", handlers.UpdateOldApplications)
+	group.GET("/screenshot/:id", handlers.ViewScreenshot)
+	group.POST("/api/applications/:id/screenshot", handlers.CaptureScreenshot)
+
+	group.GET("/api/prefill", handlers.PrefillURL)
+	group.GET("/api/search", handlers.SearchApplications)
+	group.GET("/api/export/csv", handlers.ExportCSV)
+	group.GET("/api/gowitness/status", handlers.GowitnessStatus)
+	group.POST("/api/applications/update-old", handlers.UpdateOldApplications)
 
 	addr := fmt.Sprintf("%s:%s", config.Host, config.Port)
 	log.Printf("Starting server on %s", addr)

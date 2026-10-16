@@ -30,10 +30,10 @@
                     <span class="text-xl font-bold">Job Tracker</span>
                 </div>
                 <div class="flex gap-6">
-                    <a href="/" class="hover:text-primary transition-colors {{if eq .CurrentPage "dashboard"}}text-primary{{end}}">Dashboard</a>
-                    <a href="/applications" class="hover:text-primary transition-colors {{if eq .CurrentPage "applications"}}text-primary{{end}}">Applications</a>
-                    <a href="/record" class="hover:text-primary transition-colors {{if eq .CurrentPage "record"}}text-primary{{end}}">Record</a>
-                    <a href="/resources" class="hover:text-primary transition-colors {{if eq .CurrentPage "resources"}}text-primary{{end}}">Resources</a>
+                    <a href="{{$.Prefix}}/" class="hover:text-primary transition-colors {{if eq .CurrentPage "dashboard"}}text-primary{{end}}">Dashboard</a>
+                    <a href="{{$.Prefix}}/applications" class="hover:text-primary transition-colors {{if eq .CurrentPage "applications"}}text-primary{{end}}">Applications</a>
+                    <a href="{{$.Prefix}}/record" class="hover:text-primary transition-colors {{if eq .CurrentPage "record"}}text-primary{{end}}">Record</a>
+                    <a href="{{$.Prefix}}/resources" class="hover:text-primary transition-colors {{if eq .CurrentPage "resources"}}text-primary{{end}}">Resources</a>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -71,14 +71,14 @@
     <script>
         async function updateStatus(id, status) {
             try {
-                const response = await fetch(`/api/applications/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+                const response = await fetch(`{{$.Prefix}}/api/applications/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
                 if (response.ok) location.reload();
             } catch (error) { console.error('Error:', error); }
         }
         async function deleteApplication(id) {
             if (confirm('Delete this application?')) {
                 try {
-                    const response = await fetch(`/api/applications/${id}`, { method: 'DELETE' });
+                    const response = await fetch(`{{$.Prefix}}/api/applications/${id}`, { method: 'DELETE' });
                     if (response.ok) location.reload();
                 } catch (error) { console.error('Error:', error); }
             }
@@ -86,7 +86,7 @@
         async function deleteResource(id, type) {
             if (confirm('Delete this ' + type + '?')) {
                 try {
-                    const response = await fetch(`/api/resources/${id}`, { method: 'DELETE' });
+                    const response = await fetch(`{{$.Prefix}}/api/resources/${id}`, { method: 'DELETE' });
                     if (response.ok) location.reload();
                 } catch (error) { console.error('Error:', error); }
             }
@@ -95,7 +95,7 @@
             const url = document.getElementById('job_url').value;
             if (!url) { alert('Please enter a job posting URL first'); return; }
             try {
-                const response = await fetch(`/api/prefill?url=${encodeURIComponent(url)}`);
+                const response = await fetch(`{{$.Prefix}}/api/prefill?url=${encodeURIComponent(url)}`);
                 const data = await response.json();
                 if (data.company_name && !document.getElementById('company_name').value) {
                     document.getElementById('company_name').value = data.company_name;
@@ -113,7 +113,7 @@
             const query = document.getElementById('search-input').value;
             if (!query) return;
             try {
-                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const response = await fetch(`{{$.Prefix}}/api/search?q=${encodeURIComponent(query)}`);
                 const data = await response.json();
                 showSearchResults(data.results, query);
             } catch (error) { console.error('Error search:', error); }
@@ -127,13 +127,13 @@
                 container.innerHTML = results.map(app => `
                     <div class="p-4 border rounded-lg mb-2 hover:bg-gray-50 flex items-center gap-4">
                         <div class="flex-1">
-                            <a href="/applications/${app.id}" class="block">
+                            <a href="{{$.Prefix}}/applications/${app.id}" class="block">
                                 <div class="font-medium text-lg text-gray-800">${app.company_name}</div>
                                 <div class="text-sm text-gray-500">${app.job_url || 'No URL'}</div>
                                 <div class="text-xs text-gray-400 mt-1">Status: ${app.status} | Recorded: ${new Date(app.created_at).toLocaleDateString()}</div>
                             </a>
                         </div>
-                        <a href="/applications/${app.id}" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600">View</a>
+                        <a href="{{$.Prefix}}/applications/${app.id}" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600">View</a>
                     </div>
                 `).join('');
             }
@@ -145,7 +145,7 @@
         async function updateOldApplications() {
             if (!confirm('Move applications that have been waiting for more than ' + window.rejectedDays + ' days to "No Response"? This cannot be undone.')) return;
             try {
-                const response = await fetch('/api/applications/update-old', { method: 'POST' });
+                const response = await fetch('{{$.Prefix}}/api/applications/update-old', { method: 'POST' });
                 const data = await response.json();
                 showToast(`Updated ${data.updated} application(s) to "No Response" status`);
                 if (data.updated > 0) location.reload();

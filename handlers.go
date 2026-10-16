@@ -203,21 +203,21 @@ func (h *Handlers) CreateApplication(c *gin.Context) {
 	if req.ResumeID != "" {
 		var resume Resource
 		if err := h.db.First(&resume, req.ResumeID).Error; err == nil {
-			app.ResumeID = &resume.ID
+			app.ResumeID = resume.ID
 		}
 	}
 
 	if req.ReferenceID != "" {
 		var ref Resource
 		if err := h.db.First(&ref, req.ReferenceID).Error; err == nil {
-			app.ReferenceID = &ref.ID
+			app.ReferenceID = ref.ID
 		}
 	}
 
-	if app.ResumeID == nil {
+	if app.ResumeID == 0 {
 		var latestResume Resource
 		if err := h.db.Where("resource_type = ?", "resume").Order("created_at DESC").First(&latestResume).Error; err == nil {
-			app.ResumeID = &latestResume.ID
+			app.ResumeID = latestResume.ID
 		}
 	}
 
@@ -290,19 +290,19 @@ func (h *Handlers) UpdateApplication(c *gin.Context) {
 	if req.ResumeID != "" {
 		var resume Resource
 		if err := h.db.First(&resume, req.ResumeID).Error; err == nil {
-			app.ResumeID = &resume.ID
+			app.ResumeID = resume.ID
 		}
 	} else {
-		app.ResumeID = nil
+		app.ResumeID = 0
 	}
 
 	if req.ReferenceID != "" {
 		var ref Resource
 		if err := h.db.First(&ref, req.ReferenceID).Error; err == nil {
-			app.ReferenceID = &ref.ID
+			app.ReferenceID = ref.ID
 		}
 	} else {
-		app.ReferenceID = nil
+		app.ReferenceID = 0
 	}
 
 	h.db.Save(&app)
